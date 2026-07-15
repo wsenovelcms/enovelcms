@@ -10,7 +10,7 @@ data/admin/*.log
 data/crawler/*
 data/chapters/*
 data/covers/*
-assets/uploads/
+assets/uploads/*
 
 # 备份
 old/
