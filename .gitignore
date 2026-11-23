@@ -1,27 +1,18 @@
-# 敏感配置
+# 仅拦截会泄露凭据的真实配置与私钥证书；data/、uploads/ 等目录随全新安装包整体入库。
 
-# 锁定文件
-data/install.lock
-data/upgrade.lock
+# 真实站点配置（安装时本地生成，含数据库密码 / 密钥），绝不入库
+config/config.php
+.env
+.env.*
 
-# 缓存、日志、上传文件
-data/cache/*
-data/admin/*.log
-data/crawler/*
-data/chapters/*
-data/covers/*
-assets/uploads/*
+# 私钥 / 证书
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
 
-# 备份
-old/
-
-# 临时文件
-*.tmp
-*.log
-*.sql
-*.zip
-
-# IDE
+# IDE / 系统杂项
 .idea/
 .vscode/
 .DS_Store
