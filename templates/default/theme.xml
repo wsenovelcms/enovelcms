@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<theme>
+  <id>default</id>
+  <name>EnovelCMS 默认主题</name>
+  <author>文煞</author>
+  <website>https://www.enovelcms.cn/</website>
+  <version>1.0.0</version>
+  <description>EnovelCMS 官方默认主题，PC 端固定布局（设计宽度 1280px），移动端请使用 defaultm 主题。</description>
+  <type>pc</type>
+  <level>official</level>
+  <adapted>3.0.0</adapted>
+  <price>0</price>
+  <screenshot>screenshot.png</screenshot>
+  <compatible_versions>3.0.0,3.0.1</compatible_versions>
+  <requires>
+    <php>8.0.0</php>
+    <cms>3.0.0</cms>
+  </requires>
+  <advanced>
+    <dependency></dependency>
+    <conflict></conflict>
+    <rewrite_functions></rewrite_functions>
+    <exists_functions></exists_functions>
+  </advanced>
+  <sidebars>1-9</sidebars>
+  <config>config.php</config>
+</theme>
