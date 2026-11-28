@@ -20,7 +20,7 @@ define('SESSION_LIFETIME', 7200);
 
 define('SECRET_KEY', '{{SECRET_KEY}}');
 
-define('ENOVELCMS_VERSION', '3.0.5');
+define('ENOVELCMS_VERSION', '3.0.6');
 define('ENOVELCMS_BUILD', '20261122');
 
 define('APP_CENTER_URL', 'https://appcenter.enovelbbs.cn');

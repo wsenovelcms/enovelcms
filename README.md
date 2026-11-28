@@ -6,7 +6,7 @@
 [![MySQL](https://img.shields.io/badge/MySQL-5.7%2B-orange.svg)](https://mysql.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-- 当前版本：**3.0.5**（build 20261128）
+- 当前版本：**3.0.6**（build 20261128）
 - 官方网站：https://www.enovelcms.cn/
 - 技术社区：https://www.enovelbbs.cn/
 
