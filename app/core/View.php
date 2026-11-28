@@ -67,7 +67,7 @@ class View
         }
 
         try {
-            self::$smarty->assign('currency_name', SettingModel::get('currency_name', '元'));
+            self::$smarty->assign('currency_name', SettingModel::get('currency_name', Language::get('currency_default_name', '元')));
             self::$smarty->assign('currency_symbol', SettingModel::get('currency_symbol', '¥'));
             self::$smarty->assign('exchange_rate', (int)SettingModel::get('recharge_exchange_rate', 10));
         } catch (\Throwable $e) {

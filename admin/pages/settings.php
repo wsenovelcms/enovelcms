@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && p('test_mail', null, 'raw') !== nul
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !p('delete_site_logo', null, 'raw') !== null && empty($_FILES['site_logo']['name'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && p('delete_site_logo', null, 'raw') === null && p('test_mail', null, 'raw') === null && empty($_FILES['site_logo']['name'])) {
     if (Security::verifyCsrf()) {
         $textKeys = array(
             'site_name', 'site_keywords', 'site_description', 'register_mode',

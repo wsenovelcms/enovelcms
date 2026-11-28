@@ -108,7 +108,7 @@ class Network
             return ['ok' => false, 'path' => '', 'bytes' => 0, 'headers' => $res['headers'], 'error' => $res['error']];
         }
         if (!is_file($savePath) || filesize($savePath) === 0) {
-            return ['ok' => false, 'path' => '', 'bytes' => 0, 'headers' => $res['headers'], 'error' => '下载文件为空或未写入'];
+            return ['ok' => false, 'path' => '', 'bytes' => 0, 'headers' => $res['headers'], 'error' => t_admin('adm_net_empty_file', '下载文件为空或未写入')];
         }
         return ['ok' => true, 'path' => $savePath, 'bytes' => (int)filesize($savePath), 'headers' => $res['headers'], 'error' => ''];
     }
@@ -122,10 +122,10 @@ class Network
         ];
 
         if (!extension_loaded('curl')) {
-            return $fail('服务器未启用 cURL 扩展，无法发起网络请求');
+            return $fail(t_admin('adm_net_no_curl', '服务器未启用 cURL 扩展，无法发起网络请求'));
         }
         $url = trim($url);
-        if ($url === '') return $fail('请求地址为空');
+        if ($url === '') return $fail(t_admin('adm_net_empty_url', '请求地址为空'));
 
         $safe = self::isSafeUrl($url, (array)$opt['allowHosts']);
         if (!$safe['ok']) return $fail($safe['error']);
@@ -137,7 +137,7 @@ class Network
             $dir = dirname($saveTo);
             if (!is_dir($dir)) { @mkdir($dir, 0755, true); }
             $fp = fopen($saveTo, 'wb');
-            if (!$fp) return $fail('本地文件写入失败');
+            if (!$fp) return $fail(t_admin('adm_net_write_fail', '本地文件写入失败'));
             $isStream = true;
         }
 
@@ -206,7 +206,7 @@ class Network
 
             if ($errno === 42 || $bytes > $maxBytes) {
                 if ($saveTo !== '' && is_file($saveTo)) { @unlink($saveTo); }
-                return $fail('响应超过大小上限 ' . $maxBytes . ' 字节，已中止', $httpCode);
+                return $fail(t_admin('adm_net_size_limit_abort', '响应超过大小上限 %s 字节，已中止', $maxBytes), $httpCode);
             }
             return $fail($err !== '' ? $err : ('HTTP ' . $httpCode), $httpCode);
         }
@@ -214,13 +214,13 @@ class Network
         if (!$isStream) {
             $body = (string)$body;
             if (strlen($body) > $maxBytes) {
-                return $fail('响应超过大小上限 ' . $maxBytes . ' 字节，已拒绝', $httpCode);
+                return $fail(t_admin('adm_net_size_limit_reject', '响应超过大小上限 %s 字节，已拒绝', $maxBytes), $httpCode);
             }
         } else {
 
             if ($saveTo !== '' && is_file($saveTo) && filesize($saveTo) > $maxBytes) {
                 @unlink($saveTo);
-                return $fail('响应超过大小上限 ' . $maxBytes . ' 字节，已拒绝', $httpCode);
+                return $fail(t_admin('adm_net_size_limit_reject', '响应超过大小上限 %s 字节，已拒绝', $maxBytes), $httpCode);
             }
             $body = '';
         }
@@ -232,7 +232,7 @@ class Network
             if (!is_array($decoded)) {
                 return [
                     'ok' => false, 'http' => $httpCode, 'body' => $body, 'headers' => $respHeaders,
-                    'error' => '响应不是合法的 JSON 结构', 'json' => null,
+                    'error' => t_admin('adm_net_invalid_json', '响应不是合法的 JSON 结构'), 'json' => null,
                 ];
             }
             $json = $decoded;
@@ -262,35 +262,35 @@ class Network
 
     public static function isSafeUrl(string $url, array $allowHosts = []): array
     {
-        if ($url === '') return ['ok' => false, 'error' => '请求地址为空'];
+        if ($url === '') return ['ok' => false, 'error' => t_admin('adm_net_empty_url', '请求地址为空')];
         $scheme = strtolower((string)parse_url($url, PHP_URL_SCHEME));
         if (!in_array($scheme, ['http', 'https'], true)) {
-            return ['ok' => false, 'error' => '仅允许 HTTP/HTTPS 出站请求'];
+            return ['ok' => false, 'error' => t_admin('adm_net_scheme_only', '仅允许 HTTP/HTTPS 出站请求')];
         }
         $host = (string)parse_url($url, PHP_URL_HOST);
-        if ($host === '') return ['ok' => false, 'error' => '请求地址缺少主机名'];
+        if ($host === '') return ['ok' => false, 'error' => t_admin('adm_net_no_host', '请求地址缺少主机名')];
         $host = strtolower(trim($host, '[]'));
 
-        if ($host === 'localhost') return ['ok' => false, 'error' => '禁止访问本机地址'];
+        if ($host === 'localhost') return ['ok' => false, 'error' => t_admin('adm_net_localhost', '禁止访问本机地址')];
 
         if (!empty($allowHosts)) {
             $allowHosts = array_map(static fn($h) => strtolower(trim((string)$h)), $allowHosts);
             if (!in_array($host, $allowHosts, true)) {
-                return ['ok' => false, 'error' => '目标主机不在允许名单内：' . $host];
+                return ['ok' => false, 'error' => t_admin('adm_net_host_not_allowed', '目标主机不在允许名单内：%s', $host)];
             }
         }
 
         if (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-            if (self::isPrivateIpv4($host)) return ['ok' => false, 'error' => '禁止访问内网/保留 IPv4 地址'];
+            if (self::isPrivateIpv4($host)) return ['ok' => false, 'error' => t_admin('adm_net_private_v4', '禁止访问内网/保留 IPv4 地址')];
             return ['ok' => true, 'error' => ''];
         }
         if (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-            if (self::isPrivateIpv6($host)) return ['ok' => false, 'error' => '禁止访问内网/保留 IPv6 地址'];
+            if (self::isPrivateIpv6($host)) return ['ok' => false, 'error' => t_admin('adm_net_private_v6', '禁止访问内网/保留 IPv6 地址')];
             return ['ok' => true, 'error' => ''];
         }
 
         if (preg_match('/(^|\.)(localhost|local|internal|intranet|lan|home|test|example\.local|corp)$/i', $host)) {
-            return ['ok' => false, 'error' => '禁止访问内网保留域名'];
+            return ['ok' => false, 'error' => t_admin('adm_net_private_domain', '禁止访问内网保留域名')];
         }
         return ['ok' => true, 'error' => ''];
     }

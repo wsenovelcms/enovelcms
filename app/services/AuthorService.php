@@ -186,7 +186,7 @@ class AuthorService
             'user_id'     => $userId,
             'category_id' => (int)$data['category_id'],
             'cover'       => $data['cover'] ?? null,
-            'description' => $data['description'] ?? '',
+            'description' => excerpt(trim((string)($data['description'] ?? '')), 2000, ''),
             'is_vip'      => 0,
             'vip_audit_status' => -1,
             'status'      => 0,

@@ -162,6 +162,20 @@ class Cron
             'interval' => 3600,
             'callback' => [self::class, 'cleanup'],
         ]);
+        self::register([
+            'key' => 'system:vip_expire',
+            'name' => t_admin('adm_cron_vip_name', 'VIP到期处理'),
+            'description' => t_admin('adm_cron_vip_desc', '将已到期的VIP用户状态更正为普通用户'),
+            'interval' => 300,
+            'callback' => [self::class, 'expireVip'],
+        ]);
+        self::register([
+            'key' => 'system:dashboard_stats',
+            'name' => t_admin('adm_cron_stats_name', '后台统计刷新'),
+            'description' => t_admin('adm_cron_stats_desc', '重新统计后台首页的小说数、章节数、用户数、订单数、点击与总字数并写入缓存'),
+            'interval' => 300,
+            'callback' => [self::class, 'refreshDashboardStats'],
+        ]);
     }
 
     public static function allTasks(): array
@@ -272,6 +286,26 @@ class Cron
             echo "  [✓] " . t_admin('adm_cron_warm_ok', '首页缓存已预热') . "\n";
         } catch (\Throwable $e) {
             echo "  [✗] " . t_admin('adm_cron_warm_fail', '首页预热失败：%s', $e->getMessage()) . "\n";
+        }
+    }
+
+    public static function refreshDashboardStats(): void
+    {
+        try {
+            $payload = DashboardService::refresh();
+            echo "  [✓] " . t_admin('adm_cron_stats_ok', '后台统计已刷新（%s 章 / %s 部小说）', number_format((int)$payload['data']['chapters']), number_format((int)$payload['data']['novels'])) . "\n";
+        } catch (\Throwable $e) {
+            echo "  [✗] " . t_admin('adm_cron_stats_fail', '后台统计刷新失败：%s', $e->getMessage()) . "\n";
+        }
+    }
+
+    public static function expireVip(): void
+    {
+        try {
+            $count = UserModel::expireVip();
+            echo "  [✓] " . t_admin('adm_cron_vip_ok', '已更正 %s 位到期VIP用户', $count) . "\n";
+        } catch (\Throwable $e) {
+            echo "  [✗] " . t_admin('adm_cron_vip_fail', 'VIP到期处理失败：%s', $e->getMessage()) . "\n";
         }
     }
 

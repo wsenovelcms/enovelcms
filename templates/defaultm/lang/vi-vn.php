@@ -926,4 +926,12 @@ return [
     'tp_no_match' => 'Không có thẻ phù hợp',
     'tp_limit_fmt' => 'Bạn chỉ có thể chọn tối đa %d thẻ',
     'tp_unlimited' => 'Không giới hạn',
+    'purchase_remark_fmt' => 'Mua 《%s》 - %s',
+    'currency_default_name' => 'Nhân dân tệ',
+    'db_error_title' => 'Tạm thời không truy cập được',
+    'db_error_head' => 'Kết nối cơ sở dữ liệu thất bại',
+    'db_error_body' => 'Hiện không thể kết nối cơ sở dữ liệu, vui lòng tải lại sau. Nếu lỗi tiếp diễn, hãy liên hệ quản trị viên.',
+    'runtime_dir_missing_title' => 'Thiếu thư mục runtime',
+    'runtime_dir_missing_list' => 'Các thư mục sau không tồn tại:',
+    'runtime_dir_missing_desc' => 'Gói cài đặt đã chứa đầy đủ các thư mục runtime. Vui lòng giải nén lại gói đầy đủ hoặc chạy lại install để tự động kiểm tra và bổ sung.',
 ];

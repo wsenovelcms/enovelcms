@@ -926,4 +926,12 @@ return [
     'tp_no_match' => 'No hay etiquetas coincidentes',
     'tp_limit_fmt' => 'Puedes seleccionar como máximo %d etiquetas',
     'tp_unlimited' => 'Sin límite',
+    'purchase_remark_fmt' => 'Compra 《%s》 - %s',
+    'currency_default_name' => 'Yuan',
+    'db_error_title' => 'Temporalmente no disponible',
+    'db_error_head' => 'Error de conexión a la base de datos',
+    'db_error_body' => 'El sitio no puede conectar con la base de datos. Actualice más tarde. Si el problema persiste, contacte al administrador.',
+    'runtime_dir_missing_title' => 'Falta el directorio de ejecución',
+    'runtime_dir_missing_list' => 'Los siguientes directorios no existen:',
+    'runtime_dir_missing_desc' => 'El paquete ya incluye todos los directorios de ejecución. Vuelva a descomprimir el paquete completo o ejecute install de nuevo para restaurarlos.',
 ];

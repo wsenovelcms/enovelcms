@@ -928,4 +928,12 @@ return [
     'tp_no_match' => '일치하는 태그가 없습니다',
     'tp_limit_fmt' => '태그는 최대 %d개까지 선택할 수 있습니다',
     'tp_unlimited' => '제한 없음',
+    'purchase_remark_fmt' => '《%s》 구매 - %s',
+    'currency_default_name' => '위안',
+    'db_error_title' => '일시적으로 접근할 수 없습니다',
+    'db_error_head' => '데이터베이스 연결 실패',
+    'db_error_body' => '현재 데이터베이스에 연결할 수 없습니다. 잠시 후 새로고침하세요. 문제가 계속되면 관리자에게 문의하세요.',
+    'runtime_dir_missing_title' => '런타임 디렉터리 누락',
+    'runtime_dir_missing_list' => '다음 디렉터리가 존재하지 않습니다:',
+    'runtime_dir_missing_desc' => '설치 패키지에는 모든 런타임 디렉터리가 포함되어 있습니다. 전체 패키지를 다시 압축 해제하거나 install을 다시 실행해 복구하세요.',
 ];

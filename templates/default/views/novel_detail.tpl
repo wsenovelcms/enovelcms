@@ -132,9 +132,7 @@
                     {foreach $group.chapters as $ch}
                     <div class="chapter-item" data-sort="{$ch.sort}" data-id="{$ch.id}">
                         <a href="{url route="read" novel=$novel.id chapter=$ch.id}">
-                            <span class="chapter-title-info">
-                                <span class="chapter-num-prefix">{counter}、</span>{$ch.title}
-                            </span>
+                            <span class="chapter-title-info">{$ch.title}</span>
                             {if $ch.is_vip}
                                 <span class="vip-badge chapter-vip-badge" style="background:#f59e0b;color:#fff;padding:0 6px;border-radius:10px;font-size:0.6rem;">{t name="vip_label"}</span>
                             {/if}
@@ -197,21 +195,10 @@
             header.addEventListener('click', handler);
         });
     }
-    function renumberChapters() {
-        let globalIndex = 1;
-        document.querySelectorAll('#chaptersAccordion .chapter-item').forEach(item => {
-            const numSpan = item.querySelector('.chapter-num-prefix');
-            if (numSpan) {
-                numSpan.textContent = globalIndex + '、';
-            }
-            globalIndex++;
-        });
-    }
     function sortGrid(order) {
         if (order === 'asc') {
             accordion.innerHTML = initialHtml;
             bindVolumeToggleEvents();
-            renumberChapters();
             return;
         }
         const volumeGroups = Array.from(accordion.querySelectorAll('.volume-group'));
@@ -234,7 +221,6 @@
         accordion.innerHTML = '';
         reversedGroups.forEach(group => accordion.appendChild(group));
         bindVolumeToggleEvents();
-        renumberChapters();
     }
     bindVolumeToggleEvents();
     document.querySelectorAll('.chapter-sort .sort-btn').forEach(btn => {

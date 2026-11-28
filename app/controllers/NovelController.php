@@ -62,7 +62,7 @@ class NovelController extends Controller
             'category_name'        => $catName,
             'status_label'        => $statusLabel,
             'total_words'         => number_format((int)($novel['total_words'] ?? 0)),
-            'total_chapters'      => (int)($novel['chapter_count'] ?? 0),
+            'total_chapters'      => (int)($novel['total_chapters'] ?? 0),
             'views'               => number_format((int)($novel['views'] ?? 0)),
             'favorites'           => number_format((int)($novel['favorites'] ?? 0)),
             'description_preview' => $descPreview,

@@ -24,4 +24,36 @@ class VolumeModel extends Model
     {
         return self::delete(['novel_id' => $novelId]);
     }
+
+    public static function create(array $data): int
+    {
+        $id = parent::create($data);
+        if (!empty($data['novel_id'])) ChapterModel::forgetNovelList((int)$data['novel_id']);
+        return $id;
+    }
+
+    public static function update(array $data, array $where): int
+    {
+        $affected = parent::update($data, $where);
+        if ($affected > 0) self::forgetLists($where);
+        return $affected;
+    }
+
+    public static function delete(array $where): int
+    {
+        self::forgetLists($where);
+        return parent::delete($where);
+    }
+
+    private static function forgetLists(array $where): void
+    {
+        if (isset($where['novel_id'])) {
+            ChapterModel::forgetNovelList((int)$where['novel_id']);
+            return;
+        }
+        if (isset($where['id'])) {
+            $vol = self::findById((int)$where['id'], 'novel_id');
+            if ($vol) ChapterModel::forgetNovelList((int)$vol['novel_id']);
+        }
+    }
 }

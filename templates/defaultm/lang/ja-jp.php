@@ -926,4 +926,12 @@ return [
     'tp_no_match' => '該当するタグがありません',
     'tp_limit_fmt' => 'タグは最大 %d 個まで選択できます',
     'tp_unlimited' => '無制限',
+    'purchase_remark_fmt' => '《%s》を購入 - %s',
+    'currency_default_name' => '元',
+    'db_error_title' => '一時的にアクセスできません',
+    'db_error_head' => 'データベース接続に失敗しました',
+    'db_error_body' => '現在データベースに接続できません。しばらくしてから再読み込みしてください。解決しない場合は管理者にお問い合わせください。',
+    'runtime_dir_missing_title' => '実行ディレクトリが見つかりません',
+    'runtime_dir_missing_list' => '次のディレクトリが見つかりません：',
+    'runtime_dir_missing_desc' => '実行ディレクトリはすべてインストールパッケージに含まれています。完全パッケージを再解凍するか、install を再実行して復元してください。',
 ];

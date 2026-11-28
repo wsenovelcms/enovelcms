@@ -80,7 +80,7 @@ class ChapterService
 
         $novel = NovelModel::findById((int)$chapter['novel_id'], 'title');
         $chapterTitle = ChapterModel::findById($chapterId, 'title')['title'];
-        $remark = "购买《{$novel['title']}》- {$chapterTitle}";
+        $remark = Language::get('purchase_remark_fmt', '购买《%s》- %s', $novel['title'], $chapterTitle);
 
         $db = UserModel::db();
         $db->beginTransaction();
@@ -146,7 +146,7 @@ class ChapterService
                         $anchorIdx = array_search($targetId, $ids, true);
                         $insertAt = $position === 'before' ? $anchorIdx : $anchorIdx + 1;
                         array_splice($ids, $insertAt, 0, [$chapterId]);
-                        $this->writeVolumeOrder($srcVol, $ids);
+                        $this->writeVolumeOrder($srcVol, $ids, $byVolume[$srcVol]);
                     } else {
                         $srcIds = array_values(array_diff($byVolume[$srcVol], [$chapterId]));
                         $dstIds = $byVolume[$dstVol] ?? [];
@@ -154,8 +154,8 @@ class ChapterService
                         $insertAt = $position === 'before' ? $anchorIdx : $anchorIdx + 1;
                         array_splice($dstIds, $insertAt, 0, [$chapterId]);
                         ChapterModel::update(['volume_id' => $dstVol], ['id' => $chapterId]);
-                        $this->writeVolumeOrder($srcVol, $srcIds);
-                        $this->writeVolumeOrder($dstVol, $dstIds);
+                        $this->writeVolumeOrder($srcVol, $srcIds, $byVolume[$srcVol]);
+                        $this->writeVolumeOrder($dstVol, $dstIds, $byVolume[$dstVol] ?? []);
                     }
                 }
             } else {
@@ -167,7 +167,7 @@ class ChapterService
                     $tmp = $ids[$idx];
                     $ids[$idx] = $ids[$swapIdx];
                     $ids[$swapIdx] = $tmp;
-                    $this->writeVolumeOrder($vol, $ids);
+                    $this->writeVolumeOrder($vol, $ids, $byVolume[$vol]);
                 }
             }
             $db->commit();
@@ -179,12 +179,12 @@ class ChapterService
         }
     }
 
-    private function writeVolumeOrder(int $volumeId, array $ids): void
+    private function writeVolumeOrder(int $volumeId, array $ids, array $oldIds): void
     {
-        $i = 0;
-        foreach ($ids as $id) {
-            $i++;
-            ChapterModel::update(['sort' => $i], ['id' => (int)$id]);
+        $count = count($ids);
+        for ($i = 0; $i < $count; $i++) {
+            if ($ids[$i] === ($oldIds[$i] ?? null)) continue;
+            ChapterModel::update(['sort' => $i + 1], ['id' => (int)$ids[$i]]);
         }
     }
 }

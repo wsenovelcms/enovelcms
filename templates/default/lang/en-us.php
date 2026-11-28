@@ -928,4 +928,12 @@ return [
     'tp_no_match' => 'No matching tags',
     'tp_limit_fmt' => 'You can select at most %d tags',
     'tp_unlimited' => 'Unlimited',
+    'purchase_remark_fmt' => 'Purchase 《%s》 - %s',
+    'currency_default_name' => 'CNY',
+    'db_error_title' => 'Temporarily Unavailable',
+    'db_error_head' => 'Database Connection Failed',
+    'db_error_body' => 'The site cannot connect to the database right now. Please refresh later. If the problem persists, contact the administrator.',
+    'runtime_dir_missing_title' => 'Runtime Directory Missing',
+    'runtime_dir_missing_list' => 'The following directories do not exist:',
+    'runtime_dir_missing_desc' => 'The full package already contains all runtime directories. Please re-extract the complete package, or re-run install so the installer can restore them.',
 ];

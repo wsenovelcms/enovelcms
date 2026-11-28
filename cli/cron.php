@@ -54,6 +54,9 @@ switch ($task) {
         Cron::cleanup();
         echo "[" . date('Y-m-d H:i:s') . "] " . t_admin('adm_cron_cli_clean_done', '过期数据清理完成') . "\n";
         break;
+    case 'stats':
+        Cron::refreshDashboardStats();
+        break;
     case 'run':
         if ($taskKey !== '') {
             $result = Cron::runTask($taskKey, true);

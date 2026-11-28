@@ -95,7 +95,7 @@ class CommonService
 
     public static function currencyName(): string
     {
-        return (string)SettingModel::get('currency_name', '元');
+        return (string)SettingModel::get('currency_name', Language::get('currency_default_name', '元'));
     }
 
     public static function currencySymbol(): string

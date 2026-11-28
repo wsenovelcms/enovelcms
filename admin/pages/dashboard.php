@@ -3,14 +3,9 @@
 if (!defined('ADMIN_BOOT')) exit;
 $pageTitle = t_admin('adm_dashboard', '后台首页');
 
-$novelCount   = NovelModel::count();
-$chapterCount = ChapterModel::count();
-$userCount    = UserModel::count();
-$orderCount   = OrderModel::count();
-$totalViews   = (int)NovelModel::sum('views');
-$totalWords   = (int)NovelModel::sum('total_words');
-$pendingApps  = AuthorApplicationModel::count(array('status' => 0));
-$pendingWithdraw = WithdrawRequestModel::count(array('status' => 0));
+$statsPayload = DashboardService::stats();
+$stats = $statsPayload['data'];
+$statsUpdatedAt = date('H:i', (int)$statsPayload['at']);
 
 $serverInfo = array(
     array('fa-server',     t_admin('adm_dash_info_program', '程序版本'),  'EnovelCms v' . ENOVELCMS_VERSION),
@@ -47,15 +42,16 @@ $noticePageItems = array_slice($notices, ($noticePage - 1) * $noticePerPage, $no
 Hook::doAction('admin_dashboard_top');
 ?>
 <div class="stat-grid stat-grid-8">
-    <div class="stat-box"><div class="stat-num"><?= $novelCount ?></div><div class="stat-label"><?= t_admin('adm_dash_novels', '小说') ?></div></div>
-    <div class="stat-box"><div class="stat-num"><?= $chapterCount ?></div><div class="stat-label"><?= t_admin('adm_dash_chapters', '章节') ?></div></div>
-    <div class="stat-box"><div class="stat-num"><?= $userCount ?></div><div class="stat-label"><?= t_admin('adm_dash_users', '用户') ?></div></div>
-    <div class="stat-box"><div class="stat-num"><?= $orderCount ?></div><div class="stat-label"><?= t_admin('adm_dash_orders', '订单') ?></div></div>
-    <div class="stat-box"><div class="stat-num"><?= number_format($totalViews) ?></div><div class="stat-label"><?= t_admin('adm_dash_views', '点击') ?></div></div>
-    <div class="stat-box"><div class="stat-num"><?= number_format($totalWords) ?></div><div class="stat-label"><?= t_admin('adm_dash_words', '字数') ?></div></div>
-    <div class="stat-box"><div class="stat-num"><?= $pendingApps ?></div><div class="stat-label"><?= t_admin('adm_dash_pending_author', '待审作者') ?></div></div>
-    <div class="stat-box"><div class="stat-num"><?= $pendingWithdraw ?></div><div class="stat-label"><?= t_admin('adm_dash_pending_withdraw', '待提现') ?></div></div>
+    <div class="stat-box"><div class="stat-num"><?= $stats['novels'] ?></div><div class="stat-label"><?= t_admin('adm_dash_novels', '小说') ?></div></div>
+    <div class="stat-box"><div class="stat-num"><?= $stats['chapters'] ?></div><div class="stat-label"><?= t_admin('adm_dash_chapters', '章节') ?></div></div>
+    <div class="stat-box"><div class="stat-num"><?= $stats['users'] ?></div><div class="stat-label"><?= t_admin('adm_dash_users', '用户') ?></div></div>
+    <div class="stat-box"><div class="stat-num"><?= $stats['orders'] ?></div><div class="stat-label"><?= t_admin('adm_dash_orders', '订单') ?></div></div>
+    <div class="stat-box"><div class="stat-num"><?= number_format((int)$stats['views']) ?></div><div class="stat-label"><?= t_admin('adm_dash_views', '点击') ?></div></div>
+    <div class="stat-box"><div class="stat-num"><?= number_format((int)$stats['words']) ?></div><div class="stat-label"><?= t_admin('adm_dash_words', '字数') ?></div></div>
+    <div class="stat-box"><div class="stat-num"><?= $stats['pending_apps'] ?></div><div class="stat-label"><?= t_admin('adm_dash_pending_author', '待审作者') ?></div></div>
+    <div class="stat-box"><div class="stat-num"><?= $stats['pending_withdraw'] ?></div><div class="stat-label"><?= t_admin('adm_dash_pending_withdraw', '待提现') ?></div></div>
 </div>
+<div style="margin-top:6px;font-size:12px;color:#94a3b8;"><?= t_admin('adm_dash_stats_updated', '数据更新于 %s，由定时任务每 5 分钟刷新', $statsUpdatedAt) ?></div>
 <?php Hook::doAction('admin_dashboard_stats_after'); ?>
 
 <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:16px;margin-top:16px;align-items:stretch;">

@@ -16,7 +16,8 @@ class Database
                 self::$pdo = new PDO($dsn, DB_USER, DB_PASS, [
                     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES   => false,
+                    PDO::ATTR_EMULATE_PREPARES   => true,
+                    PDO::ATTR_PERSISTENT         => true,
                 ]);
             } catch (PDOException $e) {
                 $this->renderConnectError($e->getMessage());
@@ -30,22 +31,40 @@ class Database
     {
         $raw = ($_COOKIE['lang'] ?? '') . ' ' . ($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '');
         $zh = stripos($raw, 'zh') !== false || stripos($raw, 'cn') !== false;
-        $T = $zh ? [
-            'title' => '系统暂时无法访问',
-            'head' => '数据库连接失败',
-            'body' => '网站当前无法连接数据库，请稍后刷新重试。如问题持续存在，请联系管理员。',
-            'back' => '返回首页',
-        ] : [
-            'title' => 'Temporarily Unavailable',
-            'head' => 'Database connection failed',
-            'body' => 'The site cannot reach its database right now. Please refresh later. If the problem persists, contact the administrator.',
-            'back' => 'Back to home',
-        ];
-        $msg = ($zh ? '数据库连接失败: ' : 'Database error: ') . htmlspecialchars($detail, ENT_QUOTES, 'UTF-8');
+        $T = null;
+        try {
+            Language::init('default');
+            $T = [
+                'title' => Language::get('db_error_title', '系统暂时无法访问'),
+                'head'  => Language::get('db_error_head', '数据库连接失败'),
+                'body'  => Language::get('db_error_body', '网站当前无法连接数据库，请稍后刷新重试。如问题持续存在，请联系管理员。'),
+                'back'  => Language::get('back_to_home', '返回首页'),
+            ];
+            $htmlLang = htmlspecialchars(Language::current(), ENT_QUOTES, 'UTF-8');
+        } catch (\Throwable $e) {
+            $T = null;
+            $htmlLang = $zh ? 'zh-CN' : 'en';
+        }
+        if ($T === null) {
+            $T = $zh ? [
+                'title' => '系统暂时无法访问',
+                'head' => '数据库连接失败',
+                'body' => '网站当前无法连接数据库，请稍后刷新重试。如问题持续存在，请联系管理员。',
+                'back' => '返回首页',
+            ] : [
+                'title' => 'Temporarily Unavailable',
+                'head' => 'Database connection failed',
+                'body' => 'The site cannot reach its database right now. Please refresh later. If the problem persists, contact the administrator.',
+                'back' => 'Back to home',
+            ];
+        }
+        $detailBlock = (defined('APP_DEBUG') && APP_DEBUG)
+            ? '<pre>' . htmlspecialchars($detail, ENT_QUOTES, 'UTF-8') . '</pre>'
+            : '';
         while (ob_get_level() > 0) { ob_end_clean(); }
         http_response_code(500);
         header('Content-Type: text/html; charset=utf-8');
-        echo '<!DOCTYPE html><html lang="' . ($zh ? 'zh-CN' : 'en') . '"><head><meta charset="UTF-8">'
+        echo '<!DOCTYPE html><html lang="' . $htmlLang . '"><head><meta charset="UTF-8">'
             . '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
             . '<title>' . $T['title'] . '</title><style>'
             . '*{box-sizing:border-box;margin:0;padding:0;}'
@@ -66,7 +85,7 @@ class Database
             . '<div class="card-body">'
             . '<h1>' . $T['head'] . '</h1>'
             . '<p class="msg">' . $T['body'] . '</p>'
-            . '<pre>' . $msg . '</pre>'
+            . $detailBlock
             . '<a class="btn" href="/">' . $T['back'] . '</a>'
             . '</div>'
             . '<div class="card-footer">Powered By <a href="https://www.enovelcms.cn/" target="_blank" rel="noopener">EnovelCms'

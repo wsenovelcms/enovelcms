@@ -8,10 +8,10 @@ class Cache
     public static function drivers(): array
     {
         return [
-            'file'      => ['name' => '文件缓存',   'ext' => true,  'desc' => '无需额外服务，所有环境可用'],
-            'memcached' => ['name' => 'Memcached',  'ext' => extension_loaded('memcached'), 'desc' => '高性能内存缓存，需安装 memcached 服务'],
-            'redis'     => ['name' => 'Redis',      'ext' => extension_loaded('redis'),      'desc' => '高性能键值存储，需安装 Redis 服务'],
-            'yac'       => ['name' => 'YAC',        'ext' => extension_loaded('yac') && self::yacUsable(), 'desc' => 'PHP 内置共享内存缓存，无需网络（CLI 需 yac.enable_cli=1）'],
+            'file'      => ['name' => t_admin('adm_cache_file_name', '文件缓存'), 'ext' => true, 'desc' => t_admin('adm_cache_file_desc', '无需额外服务，所有环境可用')],
+            'memcached' => ['name' => 'Memcached', 'ext' => extension_loaded('memcached'), 'desc' => t_admin('adm_cache_memcached_desc', '高性能内存缓存，需安装 memcached 服务')],
+            'redis'     => ['name' => 'Redis', 'ext' => extension_loaded('redis'), 'desc' => t_admin('adm_cache_redis_desc', '高性能键值存储，需安装 Redis 服务')],
+            'yac'       => ['name' => 'YAC', 'ext' => extension_loaded('yac') && self::yacUsable(), 'desc' => t_admin('adm_cache_yac_desc', 'PHP 内置共享内存缓存，无需网络（CLI 需 yac.enable_cli=1）')],
         ];
     }
 

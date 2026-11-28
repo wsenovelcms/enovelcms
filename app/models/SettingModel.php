@@ -6,13 +6,26 @@ class SettingModel extends Model
 
     private static array $cache = [];
 
+    private static bool $preloaded = false;
+
     public static function get(string $key, $default = null)
     {
-        if (isset(self::$cache[$key])) return self::$cache[$key];
-        $row = self::find(['key' => $key]);
-        $val = $row ? $row['value'] : $default;
-        self::$cache[$key] = $val;
-        return $val;
+        if (array_key_exists($key, self::$cache)) return self::$cache[$key];
+        self::preload();
+        if (array_key_exists($key, self::$cache)) return self::$cache[$key];
+        return $default;
+    }
+
+    private static function preload(): void
+    {
+        if (self::$preloaded) return;
+        self::$preloaded = true;
+        try {
+            foreach (self::all() as $row) {
+                self::$cache[(string)$row['key']] = $row['value'];
+            }
+        } catch (\Throwable $e) {
+        }
     }
 
     public static function set(string $key, string $value): void
@@ -40,5 +53,6 @@ class SettingModel extends Model
     {
         Cache::delete('settings_all');
         self::$cache = [];
+        self::$preloaded = false;
     }
 }

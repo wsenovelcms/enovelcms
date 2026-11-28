@@ -966,4 +966,12 @@ return [
     'anonymous_author' => '佚名',
     'msg_chapter_title_too_long' => '章节标题不能超过100字',
     'msg_chapter_content_too_long' => '章节内容超出长度限制',
+    'purchase_remark_fmt' => '购买《%s》- %s',
+    'currency_default_name' => '元',
+    'db_error_title' => '系统暂时无法访问',
+    'db_error_head' => '数据库连接失败',
+    'db_error_body' => '网站当前无法连接数据库，请稍后刷新重试。如问题持续存在，请联系管理员。',
+    'runtime_dir_missing_title' => '运行目录缺失',
+    'runtime_dir_missing_list' => '以下目录不存在：',
+    'runtime_dir_missing_desc' => '安装包内已包含全部运行目录，请重新解压完整安装包；若目录确实丢失，重新运行 install 让安装程序检测并补齐。',
 ];

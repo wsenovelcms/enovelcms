@@ -81,13 +81,19 @@ if ($novel) {
 } else {
     $result = ChapterModel::paginate(array(), 'id DESC', $page, 50);
     $rows = $result['list'];
-    $novelTitles = array();
+    $novelIds = array();
     foreach ($rows as $c) {
-        $nid = (int)$c['novel_id'];
-        if ($nid > 0 && !isset($novelTitles[$nid])) {
-            $n = NovelModel::findById($nid);
-            $novelTitles[$nid] = $n ? $n['title'] : '#'.$nid;
+        $novelIds[(int)$c['novel_id']] = 1;
+    }
+    $novelTitles = array();
+    if ($novelIds) {
+        $idList = implode(',', array_map('intval', array_keys($novelIds)));
+        foreach (NovelModel::db()->query('SELECT id, title FROM ' . NovelModel::tableName() . " WHERE id IN ({$idList})")->fetchAll() as $n) {
+            $novelTitles[(int)$n['id']] = $n['title'];
         }
+    }
+    foreach ($novelIds as $nid => $_) {
+        if (!isset($novelTitles[$nid])) $novelTitles[$nid] = '#' . $nid;
     }
 }
 ?>

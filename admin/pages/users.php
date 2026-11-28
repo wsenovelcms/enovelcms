@@ -16,6 +16,7 @@ if ($keyword !== '') {
         "SELECT id, username, email, vip_level, gold, created_at FROM {$t} WHERE username LIKE ? OR email LIKE ? ORDER BY id DESC LIMIT {$offset}, 20",
         array($kw, $kw)
     )->fetchAll();
+    $users = UserModel::normalizeRows($users);
     $totalPages = (int)ceil($total / 20);
 } else {
     $result = UserModel::paginate(array(), 'id DESC', $page, 20);

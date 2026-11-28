@@ -928,4 +928,12 @@ return [
     'tp_no_match' => 'Aucune étiquette correspondante',
     'tp_limit_fmt' => 'Vous pouvez choisir au maximum %d étiquettes',
     'tp_unlimited' => 'Illimité',
+    'purchase_remark_fmt' => 'Achat 《%s》 - %s',
+    'currency_default_name' => 'Yuan',
+    'db_error_title' => 'Temporairement indisponible',
+    'db_error_head' => 'Échec de la connexion à la base de données',
+    'db_error_body' => 'Le site ne peut pas se connecter à la base de données. Réessayez plus tard. Si le problème persiste, contactez l\'administrateur.',
+    'runtime_dir_missing_title' => 'Répertoire d\'exécution manquant',
+    'runtime_dir_missing_list' => 'Les répertoires suivants sont introuvables :',
+    'runtime_dir_missing_desc' => 'Tous les répertoires d\'exécution sont inclus dans le paquet. Ré-extrayez le paquet complet ou relancez install pour les restaurer.',
 ];

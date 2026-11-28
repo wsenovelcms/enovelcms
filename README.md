@@ -6,14 +6,13 @@
 [![MySQL](https://img.shields.io/badge/MySQL-5.7%2B-orange.svg)](https://mysql.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-- 当前版本：**3.0.4**（build 20261122）
+- 当前版本：**3.0.5**（build 20261128）
 - 官方网站：https://www.enovelcms.cn/
+- 技术社区：https://www.enovelbbs.cn/
 
 ## 一、项目介绍
 
 EnovelCms 是一套原生 PHP 小说建站管理系统，基于 **PHP 8.0+ / MySQL 5.7+** 开发，不依赖重型前端框架，服务器占用低。内置前台阅读、多端模板、后台管理、采集规则、会员充值与签到、榜单与自定义区块、多语言、广告管理、插件与主题扩展等能力，适合快速搭建网文阅读站点。
-
-> 本仓库仅包含客户端程序；应用中心（插件/主题市场）为独立站点，不在此仓库内。
 
 ## 二、环境要求
 

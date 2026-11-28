@@ -58,8 +58,13 @@ class ChapterModel extends Model
     {
         $page = max(1, $page);
         $perPage = max(1, $perPage);
-        $total = self::count($where);
-        $list = self::all($where, $order, $perPage, ($page - 1) * $perPage, $fields);
+        if (empty($where) && preg_match('/^id\s+(asc|desc)$/i', trim($order)) === 1) {
+            $list = self::sliceByShard(($page - 1) * $perPage, $perPage, stripos($order, 'desc') !== false, $fields);
+            $total = ChapterShard::totalChapters();
+        } else {
+            $total = self::count($where);
+            $list = self::all($where, $order, $perPage, ($page - 1) * $perPage, $fields);
+        }
         return [
             'list'       => $list,
             'total'      => $total,
@@ -69,8 +74,22 @@ class ChapterModel extends Model
         ];
     }
 
+    private static function sliceByShard(int $offset, int $limit, bool $desc, string $fields): array
+    {
+        if (!preg_match('/^[a-zA-Z0-9_*,\s]+$/', $fields)) $fields = '*';
+        $list = [];
+        foreach (ChapterShard::locateOffset($offset, $limit, $desc) as $seg) {
+            $table = self::$db->table(ChapterShard::shardTable($seg['index']));
+            $sql = "SELECT {$fields} FROM {$table} ORDER BY id " . ($desc ? 'DESC' : 'ASC')
+                 . " LIMIT {$seg['rows']} OFFSET {$seg['offset']}";
+            foreach (self::$db->query($sql)->fetchAll() as $row) $list[] = $row;
+        }
+        return $list;
+    }
+
     public static function count(array $where = []): int
     {
+        if (empty($where)) return ChapterShard::totalChapters();
         if (isset($where['id'])) {
             $id = (int)$where['id'];
             $shard = ChapterShard::tableByChapterId($id);
@@ -92,18 +111,39 @@ class ChapterModel extends Model
         $shard = ChapterShard::activeShardTable();
         $id = self::$db->insert($shard, $data);
         Hook::doAction('db_after_insert', $id, $data, 'chapters');
+        if (!empty($data['novel_id'])) self::forgetNovelList((int)$data['novel_id']);
         return $id;
+    }
+
+    private static array $listFields = ['id' => 1, 'novel_id' => 1, 'volume_id' => 1, 'sort' => 1, 'title' => 1,
+        'is_vip' => 1, 'price' => 1, 'word_count' => 1, 'file_path' => 1];
+
+    private static function touchNovelList(array $where): int
+    {
+        if (isset($where['novel_id'])) return (int)$where['novel_id'];
+        if (isset($where['id'])) {
+            $row = self::findById((int)$where['id'], 'novel_id');
+            return (int)($row['novel_id'] ?? 0);
+        }
+        if (isset($where['volume_id'])) {
+            $vol = VolumeModel::findById((int)$where['volume_id'], 'novel_id');
+            return (int)($vol['novel_id'] ?? 0);
+        }
+        return 0;
     }
 
     public static function update(array $data, array $where): int
     {
         $data = Hook::applyFilters('db_before_update', $data, $where, 'chapters');
+        $listChanged = (bool)array_intersect_key($data, self::$listFields);
 
         if (isset($where['id'])) {
             $id = (int)$where['id'];
+            $novelId = $listChanged ? self::touchNovelList($where) : 0;
             $shard = ChapterShard::tableByChapterId($id);
             $affected = self::$db->update($shard, $data, $where);
             Hook::doAction('db_after_update', $affected, $where, 'chapters');
+            if ($affected > 0 && $novelId > 0) self::forgetNovelList($novelId);
             return $affected;
         }
 
@@ -112,6 +152,10 @@ class ChapterModel extends Model
             $total += self::$db->update($table, $data, $where);
         }
         Hook::doAction('db_after_update', $total, $where, 'chapters');
+        if ($total > 0 && $listChanged) {
+            $novelId = self::touchNovelList($where);
+            if ($novelId > 0) self::forgetNovelList($novelId);
+        }
         return $total;
     }
 
@@ -122,20 +166,25 @@ class ChapterModel extends Model
 
     public static function delete(array $where): int
     {
+        $novelId = self::touchNovelList($where);
         if (isset($where['id'])) {
             $id = (int)$where['id'];
             $shard = ChapterShard::tableByChapterId($id);
             $affected = self::$db->delete($shard, $where);
             Hook::doAction('db_after_delete', $affected, $where, 'chapters');
-            return $affected;
+        } else {
+            $total = 0;
+            foreach (ChapterShard::allShards() as $idx => $table) {
+                $total += self::$db->delete($table, $where);
+            }
+            Hook::doAction('db_after_delete', $total, $where, 'chapters');
+            $affected = $total;
         }
-
-        $total = 0;
-        foreach (ChapterShard::allShards() as $idx => $table) {
-            $total += self::$db->delete($table, $where);
+        if ($affected > 0) {
+            ChapterShard::invalidateCounts(isset($where['id']) ? ChapterShard::shardIndex((int)$where['id']) : null);
+            if ($novelId > 0) self::forgetNovelList($novelId);
         }
-        Hook::doAction('db_after_delete', $total, $where, 'chapters');
-        return $total;
+        return $affected;
     }
 
     public static function deleteById(int $id): int
@@ -143,7 +192,36 @@ class ChapterModel extends Model
         return self::delete(['id' => $id]);
     }
 
+    private static function novelListKey(int $novelId): string
+    {
+        return 'novel_chapter_list_' . $novelId;
+    }
+
+    private static function novelMarker(int $novelId): string
+    {
+        $row = self::$db->find('novels', ['id' => $novelId], 'total_chapters, last_chapter_id, updated_at');
+        if (!$row) return '';
+        return (string)($row['total_chapters'] ?? '') . '|' . (string)($row['last_chapter_id'] ?? '') . '|' . (string)($row['updated_at'] ?? '');
+    }
+
+    public static function forgetNovelList(int $novelId): void
+    {
+        if ($novelId > 0) Cache::delete(self::novelListKey($novelId));
+    }
+
     public static function getListByNovel(int $novelId, string $order = ''): array
+    {
+        if ($order !== '') return self::queryListByNovel($novelId, $order);
+        $key = self::novelListKey($novelId);
+        $marker = self::novelMarker($novelId);
+        $cached = Cache::get($key);
+        if (is_array($cached) && ($cached['marker'] ?? null) === $marker) return $cached['list'];
+        $list = self::queryListByNovel($novelId, '');
+        Cache::set($key, ['marker' => $marker, 'list' => $list], 600);
+        return $list;
+    }
+
+    private static function queryListByNovel(int $novelId, string $order): array
     {
         $volTable = self::$db->table('volumes');
         $join = " AS c LEFT JOIN {$volTable} v ON v.id = c.volume_id";
@@ -153,9 +231,8 @@ class ChapterModel extends Model
             'c.novel_id = ?',
             $join
         );
-
-        $sql = "SELECT * FROM ({$unionSql}) AS u"
-             . " ORDER BY volume_sort ASC, volume_id ASC, sort ASC, id ASC";
+        if ($order === '') $order = 'volume_sort ASC, volume_id ASC, sort ASC, id ASC';
+        $sql = "SELECT * FROM ({$unionSql}) AS u ORDER BY {$order}";
         return self::$db->query($sql, $params)->fetchAll();
     }
 

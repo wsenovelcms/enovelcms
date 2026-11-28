@@ -4,16 +4,31 @@ class GoldLogModel extends Model
 {
     protected static string $table = 'gold_logs';
 
+    private static function remarkPattern(): string
+    {
+        $tpl = preg_quote(Language::get('purchase_remark_fmt', '购买《%s》- %s'), '/');
+        $names = ['novel', 'chapter'];
+        $i = 0;
+        $rx = preg_replace_callback('/%s/', static function () use (&$i, $names) {
+            $name = $names[$i] ?? 'f' . $i;
+            $i++;
+            return '(?<' . $name . '>.+)';
+        }, $tpl);
+        return '/^' . $rx . '$/u';
+    }
+
     public static function getByUser(int $userId, int $page = 1, int $perPage = 20): array
     {
         $result = self::paginate(['user_id' => $userId], 'id DESC', $page, $perPage);
+        $pattern = self::remarkPattern();
         foreach ($result['list'] as &$row) {
             $row['novel_title'] = '';
             $row['chapter_title'] = '';
 
             if (!empty($row['chapter_id'])
                 && in_array($row['type'], ['purchase_chapter', 'read_vip'], true)
-                && preg_match('/^购买《(?<novel>.+)》-\s*(?<chapter>.+)$/u', (string)$row['remark'], $m)) {
+                && (preg_match($pattern, (string)$row['remark'], $m)
+                    || preg_match('/^购买《(?<novel>.+)》-\s*(?<chapter>.+)$/u', (string)$row['remark'], $m))) {
                 $row['novel_title'] = $m['novel'];
                 $row['chapter_title'] = $m['chapter'];
             }

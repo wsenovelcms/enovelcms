@@ -979,4 +979,12 @@ return [
     'tp_no_match' => '没有匹配的标签',
     'tp_limit_fmt' => '最多只能选择 %d 个标签',
     'tp_unlimited' => '不限数量',
+    'purchase_remark_fmt' => '购买《%s》- %s',
+    'currency_default_name' => '元',
+    'db_error_title' => '系统暂时无法访问',
+    'db_error_head' => '数据库连接失败',
+    'db_error_body' => '网站当前无法连接数据库，请稍后刷新重试。如问题持续存在，请联系管理员。',
+    'runtime_dir_missing_title' => '运行目录缺失',
+    'runtime_dir_missing_list' => '以下目录不存在：',
+    'runtime_dir_missing_desc' => '安装包内已包含全部运行目录，请重新解压完整安装包；若目录确实丢失，重新运行 install 让安装程序检测并补齐。',
 ];

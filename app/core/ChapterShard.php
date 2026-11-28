@@ -11,6 +11,10 @@ class ChapterShard
 
     private static ?int $activeIndexCache = null;
 
+    private const COUNT_CACHE_KEY = 'chapter_shard_counts';
+
+    private const COUNT_TTL = 600;
+
     public static function shardIndex(int $id): int
     {
         return intdiv($id, self::SHARD_SIZE);
@@ -237,5 +241,99 @@ class ChapterShard
             $unionParts[] = $part;
         }
         return [implode(' UNION ALL ', $unionParts), $params];
+    }
+
+    public static function shardCounts(): array
+    {
+        $shards = self::allShards();
+        $cached = Cache::get(self::COUNT_CACHE_KEY);
+        $state = is_array($cached) && isset($cached['counts'], $cached['markers'], $cached['at'])
+            ? $cached
+            : ['counts' => [], 'markers' => [], 'at' => time()];
+        if (time() - (int)$state['at'] > self::COUNT_TTL) {
+            $state = ['counts' => [], 'markers' => [], 'at' => time()];
+        }
+        foreach (array_keys($state['counts']) as $idx) {
+            if (!isset($shards[$idx])) {
+                unset($state['counts'][$idx], $state['markers'][$idx]);
+            }
+        }
+        $markers = self::shardMarkers();
+        $db = Model::db();
+        foreach ($shards as $idx => $table) {
+            $marker = $markers[$idx] ?? '';
+            if (isset($state['counts'][$idx]) && ($state['markers'][$idx] ?? null) === $marker) continue;
+            $row = $db->query('SELECT COUNT(*) AS cnt FROM ' . $db->table($table))->fetch();
+            $state['counts'][$idx] = (int)($row['cnt'] ?? 0);
+            $state['markers'][$idx] = $marker;
+            unset($row);
+            ksort($state['counts']);
+            Cache::set(self::COUNT_CACHE_KEY, $state, self::COUNT_TTL);
+        }
+        return $state['counts'];
+    }
+
+    private static function shardMarkers(): array
+    {
+        $db = Model::db();
+        try {
+            $db->query('SET SESSION information_schema_stats_expiry = 0');
+        } catch (\Throwable $e) {
+        }
+        $rows = $db->query(
+            'SELECT TABLE_NAME AS t, AUTO_INCREMENT AS a, UPDATE_TIME AS u FROM information_schema.tables
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME LIKE ?',
+            [DB_NAME, DB_PREFIX . self::BASE_TABLE . '\_%']
+        )->fetchAll();
+        $markers = [];
+        foreach ($rows as $r) {
+            $bare = $r['t'];
+            if (DB_PREFIX !== '' && strncasecmp($bare, DB_PREFIX, strlen(DB_PREFIX)) === 0) {
+                $bare = substr($bare, strlen(DB_PREFIX));
+            }
+            if (preg_match('/^' . self::BASE_TABLE . '_(\d+)$/i', $bare, $m)) {
+                $markers[(int)$m[1]] = ($r['a'] === null ? '0' : (string)$r['a']) . '|' . ($r['u'] === null ? '' : (string)$r['u']);
+            }
+        }
+        return $markers;
+    }
+
+    public static function totalChapters(): int
+    {
+        return array_sum(self::shardCounts());
+    }
+
+    public static function invalidateCounts(?int $index = null): void
+    {
+        if ($index === null) {
+            Cache::delete(self::COUNT_CACHE_KEY);
+            return;
+        }
+        $cached = Cache::get(self::COUNT_CACHE_KEY);
+        if (!is_array($cached) || !isset($cached['counts'][$index])) return;
+        unset($cached['counts'][$index], $cached['markers'][$index]);
+        Cache::set(self::COUNT_CACHE_KEY, $cached, self::COUNT_TTL);
+    }
+
+    public static function locateOffset(int $offset, int $limit, bool $desc = true): array
+    {
+        $counts = self::shardCounts();
+        if ($desc) $counts = array_reverse($counts, true);
+        $offset = max(0, $offset);
+        $limit = max(0, $limit);
+        $want = $offset + $limit;
+        $plan = [];
+        $start = 0;
+        foreach ($counts as $idx => $cnt) {
+            $end = $start + $cnt;
+            $from = max($offset, $start);
+            $to = min($want, $end);
+            if ($to > $from) {
+                $plan[] = ['index' => (int)$idx, 'offset' => $from - $start, 'rows' => $to - $from];
+            }
+            $start = $end;
+            if ($start >= $want) break;
+        }
+        return $plan;
     }
 }

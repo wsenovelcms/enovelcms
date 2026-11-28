@@ -110,15 +110,26 @@ class Bootstrap
         }
 
         if (!empty($missing)) {
+            $title = '运行目录缺失';
+            $listLabel = '以下目录不存在：';
+            $desc = '安装包内已包含全部运行目录，请重新解压完整安装包；若目录确实丢失，重新运行 install 让安装程序检测并补齐。';
+            $langCode = 'zh-CN';
+            try {
+                $title = Language::get('runtime_dir_missing_title', $title);
+                $listLabel = Language::get('runtime_dir_missing_list', $listLabel);
+                $desc = Language::get('runtime_dir_missing_desc', $desc);
+                $langCode = htmlspecialchars(Language::current(), ENT_QUOTES, 'UTF-8');
+            } catch (\Throwable $e) {
+            }
             http_response_code(503);
             header('Content-Type: text/html; charset=utf-8');
-            echo '<!doctype html><html><meta charset="utf-8"><title>运行目录缺失</title>'
+            echo '<!doctype html><html lang="' . $langCode . '"><meta charset="utf-8"><title>' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</title>'
                 . '<div style="font:15px/1.7 -apple-system,\'Microsoft YaHei\',sans-serif;color:#1f2330;background:#f6f7f9;padding:28px 24px;">'
                 . '<div style="max-width:760px;margin:0 auto;background:#fff;border:1px solid #d7dbe3;border-radius:8px;padding:22px 24px;">'
-                . '<div style="font-size:19px;font-weight:700;margin-bottom:10px;">运行目录缺失</div>'
-                . '<div style="margin-bottom:10px;">以下目录不存在：</div>'
-                . '<div style="font-family:ui-monospace,Consolas,monospace;color:#b91c1c;margin-bottom:14px;">' . htmlspecialchars(implode('、', $missing)) . '</div>'
-                . '<div>安装包内已包含全部运行目录，请重新解压完整安装包；若目录确实丢失，重新运行 install 让安装程序检测并补齐。</div>'
+                . '<div style="font-size:19px;font-weight:700;margin-bottom:10px;">' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</div>'
+                . '<div style="margin-bottom:10px;">' . htmlspecialchars($listLabel, ENT_QUOTES, 'UTF-8') . '</div>'
+                . '<div style="font-family:ui-monospace,Consolas,monospace;color:#b91c1c;margin-bottom:14px;">' . htmlspecialchars(implode(', ', $missing), ENT_QUOTES, 'UTF-8') . '</div>'
+                . '<div>' . htmlspecialchars($desc, ENT_QUOTES, 'UTF-8') . '</div>'
                 . '</div></div></html>';
             exit;
         }

@@ -4,6 +4,58 @@ class UserModel extends Model
 {
     protected static string $table = 'users';
 
+    public static function normalizeVip(array $row): array
+    {
+        if ((int)($row['vip_level'] ?? 0) > 0 && !empty($row['vip_expire'])
+            && strtotime((string)$row['vip_expire']) <= time()) {
+            $row['vip_level'] = 0;
+        }
+        return $row;
+    }
+
+    public static function normalizeRows(array $rows): array
+    {
+        $vip = false;
+        foreach ($rows as $row) {
+            if ((int)($row['vip_level'] ?? 0) > 0) { $vip = true; break; }
+        }
+        if (!$vip) return $rows;
+        foreach ($rows as &$row) $row = self::normalizeVip($row);
+        unset($row);
+        return $rows;
+    }
+
+    public static function findById(int $id, string $fields = '*'): ?array
+    {
+        $row = parent::findById($id, $fields);
+        return $row ? self::normalizeVip($row) : null;
+    }
+
+    public static function find(array $where, string $fields = '*'): ?array
+    {
+        $row = parent::find($where, $fields);
+        return $row ? self::normalizeVip($row) : null;
+    }
+
+    public static function all(array $where = [], string $order = '', int $limit = 0, int $offset = 0, string $fields = '*'): array
+    {
+        return self::normalizeRows(parent::all($where, $order, $limit, $offset, $fields));
+    }
+
+    public static function paginate(array $where = [], string $order = '', int $page = 1, int $perPage = 20, string $fields = '*'): array
+    {
+        $result = parent::paginate($where, $order, $page, $perPage, $fields);
+        $result['list'] = self::normalizeRows($result['list']);
+        return $result;
+    }
+
+    public static function expireVip(): int
+    {
+        return self::db()->query(
+            'UPDATE ' . self::tableName() . ' SET vip_level = 0 WHERE vip_level > 0 AND vip_expire IS NOT NULL AND vip_expire <= NOW()'
+        )->rowCount();
+    }
+
     public static function login(string $username, string $password): ?array
     {
         $user = self::find(['username' => $username]);
