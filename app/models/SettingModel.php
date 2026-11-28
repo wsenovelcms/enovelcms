@@ -19,11 +19,11 @@ class SettingModel extends Model
     private static function preload(): void
     {
         if (self::$preloaded) return;
-        self::$preloaded = true;
         try {
             foreach (self::all() as $row) {
                 self::$cache[(string)$row['key']] = $row['value'];
             }
+            self::$preloaded = true;
         } catch (\Throwable $e) {
         }
     }
