@@ -245,17 +245,36 @@ class NovelService
             if ($orderBy) $qb->orderBy($orderBy);
             $novels = $qb->limit($num)->get();
         } else {
-            $all = $qb->get();
-            if (!$all) return [];
-            $map = [];
-            foreach ($all as $n) $map[$n['id']] = $n;
-            $customIds = array_filter(array_map('trim', explode(',', $block['custom_ids'] ?? '')), 'is_numeric');
+            $customIds = array_values(array_unique(array_filter(
+                array_map('intval', explode(',', $block['custom_ids'] ?? '')),
+                fn($v) => $v > 0
+            )));
             $novels = [];
-            foreach ($customIds as $id) {
-                $id = (int)$id;
-                if (isset($map[$id])) { $novels[] = $map[$id]; unset($map[$id]); }
+            $map = [];
+            $build = function () use ($selectRaw, $where, $params, $timeCondition) {
+                $b = NovelModel::db()->from('novels', 'n')
+                    ->selectRaw($selectRaw)
+                    ->leftJoin('categories', 'c', 'n.category_id = c.id');
+                if ($where) $b->where($where, $params);
+                if ($timeCondition) $b->where($timeCondition);
+                return $b;
+            };
+            if ($customIds) {
+                foreach ($build()->whereIn('n.id', $customIds)->limit(count($customIds))->get() as $row) {
+                    $map[(int)$row['id']] = $row;
+                }
+                foreach ($customIds as $id) {
+                    if (isset($map[$id])) { $novels[] = $map[$id]; unset($map[$id]); }
+                }
             }
             $remaining = array_values($map);
+            $need = $num - count($novels);
+            if ($need > 0) {
+                $qbRest = $build();
+                if ($customIds) $qbRest->whereNotIn('n.id', $customIds);
+                if ($orderBy) $qbRest->orderBy($orderBy);
+                $remaining = array_merge($remaining, $qbRest->limit($need)->get());
+            }
             usort($remaining, function ($a, $b) { return (int)$b['id'] - (int)$a['id']; });
             $novels = array_slice(array_merge($novels, $remaining), 0, $num);
         }

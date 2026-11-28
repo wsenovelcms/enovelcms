@@ -221,12 +221,14 @@ class ChapterModel extends Model
         return $list;
     }
 
+    private const LIST_FIELDS = 'c.id, c.novel_id, c.volume_id, c.title, c.word_count, c.file_path, c.source_url, c.source_chapter_id, c.sort, c.is_vip, c.price, c.created_at';
+
     private static function queryListByNovel(int $novelId, string $order): array
     {
         $volTable = self::$db->table('volumes');
         $join = " AS c LEFT JOIN {$volTable} v ON v.id = c.volume_id";
         [$unionSql, $params] = ChapterShard::unionAllAcrossShards(
-            'SELECT c.*, COALESCE(v.sort, 0) AS volume_sort',
+            'SELECT ' . self::LIST_FIELDS . ', COALESCE(v.sort, 0) AS volume_sort',
             [$novelId],
             'c.novel_id = ?',
             $join
@@ -243,7 +245,7 @@ class ChapterModel extends Model
         $volTable = self::$db->table('volumes');
         $join = " AS c LEFT JOIN {$volTable} v ON v.id = c.volume_id";
         [$unionSql, $params] = ChapterShard::unionAllAcrossShards(
-            'SELECT c.*, COALESCE(v.sort, 0) AS volume_sort',
+            'SELECT ' . self::LIST_FIELDS . ', COALESCE(v.sort, 0) AS volume_sort',
             [$novelId],
             'c.novel_id = ?',
             $join

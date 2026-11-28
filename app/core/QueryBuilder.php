@@ -170,11 +170,19 @@ class QueryBuilder
 
     public function count(): int
     {
-        $countSql = "SELECT COUNT(*) AS cnt FROM `" . $this->prefix . $this->mainTable . "`"
-                  . ($this->mainAlias ? " {$this->mainAlias}" : '')
-                  . ($this->joins ? ' ' . implode(' ', $this->joins) : '')
-                  . $this->buildWhereSql();
-        $stmt = $this->pdo->prepare($countSql);
+        $base = " FROM `" . $this->prefix . $this->mainTable . "`"
+              . ($this->mainAlias ? " {$this->mainAlias}" : '')
+              . ($this->joins ? ' ' . implode(' ', $this->joins) : '')
+              . $this->buildWhereSql()
+              . ($this->groupBy ? " GROUP BY {$this->groupBy}" : '')
+              . ($this->having ? " HAVING {$this->having}" : '');
+        if ($this->groupBy !== '' || $this->having !== '') {
+            $inner = "SELECT " . ($this->distinct ? 'DISTINCT ' : '') . $this->select . $base;
+            $sql = "SELECT COUNT(*) AS cnt FROM ({$inner}) AS cnt_src";
+        } else {
+            $sql = "SELECT COUNT(*) AS cnt" . $base;
+        }
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute($this->params);
         return (int)($stmt->fetch()['cnt'] ?? 0);
     }

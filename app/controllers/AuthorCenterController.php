@@ -360,7 +360,8 @@ class AuthorCenterController extends Controller
             $this->view('404.tpl', ['message' => Language::get('msg_no_permission_novel', '无权操作该作品')]);
             return;
         }
-        $addPerm = $this->novelPermissions(NovelModel::findById($novelId));
+        $novel = NovelModel::findById($novelId);
+        $addPerm = $this->novelPermissions($novel);
         if ($this->denyIfLocked($addPerm['can_manage_chapter'], $addPerm['deny_msg'])) return;
         if ($this->request->isPost()) {
             if (!Security::verifyCsrf()) {
@@ -374,12 +375,10 @@ class AuthorCenterController extends Controller
             }
         }
 
-        $orderedAll = ChapterModel::getListByNovel($novelId);
-        $latestRows = $orderedAll ? [end($orderedAll)] : [];
-        $defaultVip = !empty($latestRows) && (int)$latestRows[0]['is_vip'] === 1;
+        $defaultVip = !empty($novel['last_chapter_is_vip']) && (int)$novel['last_chapter_is_vip'] === 1;
 
         $this->view('author/chapter_add.tpl', [
-            'novel'              => NovelModel::findById($novelId),
+            'novel'              => $novel,
             'volumes'            => VolumeModel::getByNovel($novelId),
             'default_vip'        => $defaultVip,
         ]);
