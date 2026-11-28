@@ -234,7 +234,7 @@ $LANG = array(
     'err_sql_missing'   => array('zh' => '安装数据文件缺失：%s', 'en' => 'Install SQL file missing: %s'),
     'err_db'            => array('zh' => '数据库错误：%s', 'en' => 'Database error: %s'),
     'err_rw_first'      => array('zh' => '请先完成伪静态验证', 'en' => 'Complete the rewrite verification first.'),
-    'meta'              => array('zh' => 'EnovelCms 3.0.6 · PHP %s', 'en' => 'EnovelCms 3.0.6 · PHP %s'),
+    'meta'              => array('zh' => 'EnovelCms 3.0.7 · PHP %s', 'en' => 'EnovelCms 3.0.7 · PHP %s'),
     'conflict_title'    => array('zh' => '检测到同前缀的已有数据表', 'en' => 'Existing tables with the same prefix detected'),
     'conflict_body'     => array('zh' => '数据库中已存在使用该前缀的数据表，为避免覆盖原数据，安装已暂停。请选择处理方式：清除数据后重新安装，或返回修改表前缀。', 'en' => 'Tables using this prefix already exist. To protect your data the installation is paused. Either wipe the existing data and reinstall, or go back and change the table prefix.'),
     'conflict_tables'   => array('zh' => '检测到的已有数据表（共 %s 张）', 'en' => 'Existing tables found (%s)'),
@@ -663,8 +663,8 @@ if ($step === 4 && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     . "define('SESSION_NAME', 'ENOVEL3');\n"
                     . "define('SESSION_LIFETIME', 7200);\n"
                     . "define('SECRET_KEY', " . phpQuote($secretKey) . ");\n"
-                    . "define('ENOVELCMS_VERSION', '3.0.6');\n"
-                    . "define('ENOVELCMS_BUILD', '20261122');\n"
+                    . "define('ENOVELCMS_VERSION', '3.0.7');\n"
+                    . "define('ENOVELCMS_BUILD', '20261128');\n"
                     . "define('APP_CENTER_URL', 'https://appcenter.enovelbbs.cn');\n"
                     . "define('APP_CENTER_URL_BACKUP', 'https://appcenter.enovelcms.cn');\n"
                     . "define('AC_VERIFY_SIGNATURE', true);\n"
